@@ -21,10 +21,11 @@ h1 {
     text-align: center;
 }
 
-#current-day {
+#weather-current-day {
     display: block;
     border: 1px solid #818182;
     border-radius: 4px;
+    background-color: rgb(236, 232, 232);
 }
   
 .card {
