@@ -1,0 +1,36 @@
+body {
+    background-color: rgb(236, 232, 232);
+}
+h1 {
+    text-align: center;
+    background-color: black;
+    color: rgb(236, 232, 232);
+    font-family: 'Open Sans', sans-serif;
+}
+
+#search-box {
+    border: 1px solid #818182;
+    border-radius: 4px;
+}
+
+#search-btn {
+    border: 2px solid #6aa0f1;
+    border-radius: 6px;
+    background-color: #0d5cd3;
+    color: rgb(236, 232, 232);
+    text-align: center;
+}
+
+#current-day {
+    display: block;
+    border: 1px solid #818182;
+    border-radius: 4px;
+}
+  
+.card {
+    border-radius: 6px;
+    background-color: #0d5cd3;
+    color: rgb(236, 232, 232);
+    font-size: 1vw;
+  }
+
