@@ -35,3 +35,18 @@ h1 {
     font-size: 1vw;
   }
 
+  #uv-index-mild {
+      background-color: green;
+      color: r#fdfdfe;
+  }
+
+  #uv-index-moderate {
+      background-color: orange;
+      color: #fdfdfe;
+  }
+
+  #uv-index-severe {
+      background-color: red;
+      color: #fdfdfe;
+  }
+
