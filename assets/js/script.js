@@ -120,7 +120,7 @@ var fetchForecast = function () {
             // capturing forecast mid-day the next day or current day
             if ((day>0 && time >= 11 && time < 14) || (cityForecast.forecastTemp.length === 4 && i === (data.list.length-1))) {
                 cityForecast.forecastHumidity.push(data.list[i].main.humidity);
-                cityForecast.forecastTemp.push(data.list[i].main.temp);
+                cityForecast.forecastTemp.push(data.list[i].main.temp.toFixed(1));
                 cityForecast.forecastDate.push(getForecastDate);
                 cityForecast.forecastIcon.push(data.list[i].weather[0].icon);
             }
@@ -165,9 +165,9 @@ var fetchCityWeather = function (cityName, cities) {
     .then(function(data) {
 
         cityWeather.name = data.name;
-        cityWeather.temp = data.main.temp;
+        cityWeather.temp = data.main.temp.toFixed(1);
         cityWeather.humidity = data.main.humidity;
-        cityWeather.windSpeed = data.wind.speed;
+        cityWeather.windSpeed = data.wind.speed.toFixed(1);
         cityWeather.icon = data.weather[0].icon;
         cityWeather.coordLon = data.coord.lon;
         cityWeather.coordLat = data.coord.lat;
@@ -194,9 +194,20 @@ var displayWeather = function () {
     var currentWeatherBox = document.createElement("div");
     currentWeatherBox.id = "weather-current-day-box";
 
+    var cityNameContainer = document.createElement("div");
+    cityNameContainer.id = "city-name-container";
+    cityNameContainer.setAttribute("class", "d-flex");
+
     var cityName = document.createElement("h3");
     cityName.textContent = cityWeather.name + " (" + cityWeather.date.format("MM/DD/YYYY") + ")";
     cityName.id = "city-name";
+    // cityName.setAttribute("class", "col-6");
+
+    var cityIcon = document.createElement("img");
+    cityIcon.src = "http://openweathermap.org/img/wn/" + cityWeather.icon + "@2x.png";
+    // cityIcon.setAttribute("class", "col-2");
+
+    cityNameContainer.append(cityName, cityIcon);
 
     var cityTemperature = document.createElement("p");
     cityTemperature.textContent = "Temperature: " + cityWeather.temp.toString() + " ℉";
@@ -220,7 +231,7 @@ var displayWeather = function () {
     }
     cityUvIndex.appendChild(cityUvIndexColor);
 
-    currentWeatherBox.append(cityName, cityTemperature, cityHumidity, cityWindSpeed, cityUvIndex)
+    currentWeatherBox.append(cityNameContainer, cityTemperature, cityHumidity, cityWindSpeed, cityUvIndex)
 
     weatherCurrentDayEl.appendChild(currentWeatherBox);
 
