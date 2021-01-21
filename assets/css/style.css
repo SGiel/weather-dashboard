@@ -52,3 +52,7 @@ h1 {
       color: #fdfdfe;
   }
 
+  li:hover {
+      background-color: rgb(236, 232, 232); 
+  }
+

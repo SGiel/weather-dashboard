@@ -30,7 +30,6 @@ var getCityHistory = function(){
     if (retrievedCities) {
         var citiesArr = retrievedCities.split(',');
     }
-    console.log("citiesArr", citiesArr);
     return citiesArr;
 };
 
@@ -38,7 +37,6 @@ var getCityHistory = function(){
 var saveCityHistory = function(cityName) {
 
     var foundCity = false;
-    console.log("cities in saveCityHistory", cities);
     // search for city to see if alreay in cities array
     if (cities) {
         for (i = 0; i < cities.length; i++) {
@@ -47,17 +45,11 @@ var saveCityHistory = function(cityName) {
             }
         }
     }
-    //console.log("cities", cities);
-    //console.log("foundCity", foundCity);
-    //console.log("cityName", cityName);
-    //console.log("cityWeather.name", cityWeather.name);
     // if city is not in cities array then save to localStorage
     if (!foundCity && cityWeather.name) {
         cities.push(cityWeather.name);
         localStorage.setItem("cities", cities);
     } 
-    console.log("cities in saveCityHistory after push", cities);
-
 };
 
 // puts city search history on page
@@ -70,23 +62,31 @@ var displayCityHistory = function(cityHistory) {
             cityListItem.id = "city-" + i.toString();
             cityListItem.setAttribute("class", "list-group-item list-group-item-light");
             cityListItem.textContent = cityHistory[i];
+            cityListItem.addEventListener("click", function (event) {
+                event.preventDefault();
+                cleanStart();
+                fetchCityWeather(event.target.textContent);
+            })
             cityHistoryEl.appendChild(cityListItem);
         }
     }    
 };
 
-var getCityName = function (event) {
+var cleanStart = function() {
 
-    event.preventDefault();
-    
     cityHistory = getCityHistory();
-    console.log("cityHistory ", cityHistory);
     displayCityHistory(cityHistory);
     cities=cityHistory;
 
     refresh(forecastHeaderEl);
     refresh(weatherForecastEl);
+}
 
+var getCityName = function (event) {
+
+    event.preventDefault();
+    
+    cleanStart();
 
     var cityName = cityNameEl.value.trim();
 
@@ -174,7 +174,6 @@ var fetchCityWeather = function (cityName, cities) {
         // get date in local time of city searched
         cityWeather.date = moment(data.date).utcOffset(data.timezone / 3600);
         
-        console.log("cityWeather ", cityWeather);
         saveCityHistory(cityName);
 
         fetchUvi();
