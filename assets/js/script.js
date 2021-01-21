@@ -3,6 +3,7 @@ var cityNameEl = document.querySelector("#city-name");
 var weatherCurrentDayEl = document.querySelector("#weather-current-day");
 var weatherForecastEl = document.querySelector("#weather-forecast");
 var forecastHeaderEl = document.querySelector("#forecast-header");
+var cityHistoryEl = document.querySelector("#city-history");
 
 // the names of cities searched for
 var cities = [];
@@ -10,110 +11,190 @@ var cities = [];
 var cityWeather = {};
 // forecasted city weather information
 var cityForecast = {
-        forecastDate: [],
-        forecastTemp: [],
-        forecastHumidity: [],
-        forecastIcon: []
+    forecastDate: [],
+    forecastTemp: [],
+    forecastHumidity: [],
+    forecastIcon: []
 };
 
 // clears out HTML in element with particular id
 var refresh = function (idToRefresh) {
-    idToRefresh.innerHTML = '';
+    idToRefresh.innerHTML = "";
 }
 
-var getCityWeather = function (cityName) {
+// retrieves prior cities searched from localStorage
+var getCityHistory = function(){
 
-    var apiUrlWeather = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&units=imperial&appid=36badb05283e47c914843551c2046d2d";
-    // fetch current weather
-    fetch(apiUrlWeather).then(function (response) {
-        if (response.ok) {
-            response.json().then(function (data) {
-                console.log(" the original data", data);
-
-                cityWeather.name = cityName;
-                cityWeather.temp = data.main.temp;
-                cityWeather.humidity = data.main.humidity;
-                cityWeather.windSpeed = data.wind.speed;
-                cityWeather.icon = data.weather[0].icon;
-                cityWeather.coordLon = data.coord.lon;
-                cityWeather.coordLat = data.coord.lat;
-                // get date in local time of city searched
-                cityWeather.date = moment(data.date).utcOffset(data.timezone/3600);
-                console.log("cityWeather after current date added", cityWeather.date.format("MM/DD/YYYY HH:mm:ss"));
- 
-                // gets uv index
-                var apiUrlUvi = "https://api.openweathermap.org/data/2.5/uvi?lat=" + cityWeather.coordLat + "&lon=" + cityWeather.coordLon + "&appid=36badb05283e47c914843551c2046d2d";
-                fetch(apiUrlUvi).then(function (response) {
-                    if (response.ok) {
-                        response.json().then(function (data) {
-                            console.log("UVI data", data);
-                            cityWeather.uvi = data.value;
-
-                            //cities.push(cityWeather);
-                            //console.log(cities);
-                            
-                            // gets 5-day forecast
-                            var apiUrlForecast = "https://api.openweathermap.org/data/2.5/forecast?q=" + cityName + "&units=imperial&appid=36badb05283e47c914843551c2046d2d";
-                            fetch(apiUrlForecast).then(function (response) {
-                                if (response.ok) {
-                                    response.json().then(function (data) {
-                                        //console.log("data coming from forecast ", data);
-                                        // capture forecasts 11am to 2pm  day + 1, 2, 3, 4, 5
-                                        for (i = 0; i < data.list.length; i++) {
-                                            //get forecast date in local time of city searched
-                                            getForecastDate = moment.unix(data.list[i].dt).utcOffset(data.city.timezone/3600);
-                                            day = parseInt(getForecastDate.format("DD")) - parseInt(cityWeather.date.format("DD"));
-                                            time = parseInt(getForecastDate.format("HH"));
-                                            
-                                            // capturing forecast mid-day the next day or current day
-                                            if (time >= 11 && time < 14) {
-                                                console.log("cityForecast time: ", getForecastDate.format("MM/DD/YYYY HH:mm:ss"));
-                                                cityForecast.forecastHumidity.push(data.list[i].main.humidity);
-                                                cityForecast.forecastTemp.push(data.list[i].main.temp);
-                                                cityForecast.forecastDate.push(getForecastDate);
-                                                cityForecast.forecastIcon.push(data.list[i].weather[0].icon);
-                                                console.log("cityForecast ", cityForecast);
-                                            }                                           
-                                        }
-
-                                        displayWeather();
-                                        displayForecast();
-                                    });
-                                } else {
-                                    alert("Error in 5-day forecast: " + response.statusText);
-                                    return;
-                                }
-                            });
-                        });
-                    } else {
-                        alert("Error in UVI: " + response.statusText);
-                        return;
-                    }
-                });
-
-                // end of response.json.then
-            });
-        } else {
-            alert("Error: " + response.statusText);
-            return;
-        }
-    });
-    // end getCityWeather function      
+    var retrievedCities = localStorage.getItem("cities");
+    var citiesArr = [];
+    if (retrievedCities) {
+        var citiesArr = retrievedCities.split(',');
+    }
+    console.log("citiesArr", citiesArr);
+    return citiesArr;
 };
 
+// saves new city to localStorage if isn't already there
+var saveCityHistory = function(cityName) {
 
+    var foundCity = false;
+    console.log("cities in saveCityHistory", cities);
+    // search for city to see if alreay in cities array
+    if (cities) {
+        for (i = 0; i < cities.length; i++) {
+            if ((cities[i] === cityWeather.name )) {
+                foundCity = true;
+            }
+        }
+    }
+    //console.log("cities", cities);
+    //console.log("foundCity", foundCity);
+    //console.log("cityName", cityName);
+    //console.log("cityWeather.name", cityWeather.name);
+    // if city is not in cities array then save to localStorage
+    if (!foundCity && cityWeather.name) {
+        cities.push(cityWeather.name);
+        localStorage.setItem("cities", cities);
+    } 
+    console.log("cities in saveCityHistory after push", cities);
+
+};
+
+// puts city search history on page
+var displayCityHistory = function(cityHistory) {
+
+    refresh(cityHistoryEl);
+    if (cityHistory) {
+        for (i =0; i < cityHistory.length; i++) {
+            var cityListItem = document.createElement("li");
+            cityListItem.id = "city-" + i.toString();
+            cityListItem.setAttribute("class", "list-group-item list-group-item-light");
+            cityListItem.textContent = cityHistory[i];
+            cityHistoryEl.appendChild(cityListItem);
+        }
+    }    
+};
 
 var getCityName = function (event) {
+
     event.preventDefault();
+    
+    cityHistory = getCityHistory();
+    console.log("cityHistory ", cityHistory);
+    displayCityHistory(cityHistory);
+    cities=cityHistory;
+
+    refresh(forecastHeaderEl);
+    refresh(weatherForecastEl);
+
 
     var cityName = cityNameEl.value.trim();
 
-    getCityWeather(cityName);
-
+    fetchCityWeather(cityName);
 }
+
+var initializeCityForecast = function() {
+    cityForecast.forecastDate.length = 0;
+    cityForecast.forecastTemp.length = 0;
+    cityForecast.forecastHumidity.length = 0;
+    cityForecast.forecastIcon.length = 0;
+};
+
+var fetchForecast = function () {
+    // gets 5-day forecast
+    var apiUrlForecast = "https://api.openweathermap.org/data/2.5/forecast?q=" + cityWeather.name + "&units=imperial&appid=36badb05283e47c914843551c2046d2d";
+    fetch(apiUrlForecast).then(function (response) {
+        return response.json();
+    })
+    .then(function(data) {
+
+        initializeCityForecast();
+
+        // capture forecasts 11am to 2pm  day + 1, 2, 3, 4, 5
+        for (i = 0; i < data.list.length; i++) {
+            //get forecast date in local time of city searched
+            getForecastDate = moment.unix(data.list[i].dt).utcOffset(data.city.timezone / 3600);
+            day = parseInt(getForecastDate.format("DD")) - parseInt(cityWeather.date.format("DD"));
+            time = parseInt(getForecastDate.format("HH"));
+
+            // capturing forecast mid-day the next day or current day
+            if ((day>0 && time >= 11 && time < 14) || (cityForecast.forecastTemp.length === 4 && i === (data.list.length-1))) {
+                cityForecast.forecastHumidity.push(data.list[i].main.humidity);
+                cityForecast.forecastTemp.push(data.list[i].main.temp);
+                cityForecast.forecastDate.push(getForecastDate);
+                cityForecast.forecastIcon.push(data.list[i].weather[0].icon);
+            }
+        }
+        displayWeather();
+        displayForecast();
+    })
+    .catch(function(error) {
+        console.error(error);
+        alert("Problem capturing 5-day forecast");
+    });
+// end of fetchForecast function
+};
+
+var fetchUvi = function () {
+    
+    // gets uv index
+    var apiUrlUvi = "https://api.openweathermap.org/data/2.5/uvi?lat=" + cityWeather.coordLat + "&lon=" + cityWeather.coordLon + "&appid=36badb05283e47c914843551c2046d2d";
+    fetch(apiUrlUvi).then(function (response) {
+        return response.json();
+    })
+    .then(function (data) {
+        
+        cityWeather.uvi = data.value;
+
+        fetchForecast();
+    })
+    .catch(function(error) {
+        console.error(error);
+        alert("Problem capturing UVI");
+    });
+// end of fetchUvi function
+};
+
+var fetchCityWeather = function (cityName, cities) {
+    var apiUrlWeather = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&units=imperial&appid=36badb05283e47c914843551c2046d2d";
+    
+    // fetch current weather
+    fetch(apiUrlWeather).then(function (response) {
+        return response.json();
+    })
+    .then(function(data) {
+
+        cityWeather.name = data.name;
+        cityWeather.temp = data.main.temp;
+        cityWeather.humidity = data.main.humidity;
+        cityWeather.windSpeed = data.wind.speed;
+        cityWeather.icon = data.weather[0].icon;
+        cityWeather.coordLon = data.coord.lon;
+        cityWeather.coordLat = data.coord.lat;
+        // get date in local time of city searched
+        cityWeather.date = moment(data.date).utcOffset(data.timezone / 3600);
+        
+        console.log("cityWeather ", cityWeather);
+        saveCityHistory(cityName);
+
+        fetchUvi();
+    })
+    .catch(function(error) {
+        //console.log(error);
+        console.error(error);
+        alert("Unable to find city. Please check your spelling or try another city.")
+    });
+// end getCityWeather function      
+};
 
 var displayWeather = function () {
     refresh(weatherCurrentDayEl);
+    refresh(forecastHeaderEl);
+    refresh(weatherForecastEl);
+
+    var currentWeatherBox = document.createElement("div");
+    currentWeatherBox.id = "weather-current-day-box";
+
     var cityName = document.createElement("h3");
     cityName.textContent = cityWeather.name + " (" + cityWeather.date.format("MM/DD/YYYY") + ")";
     cityName.id = "city-name";
@@ -133,14 +214,16 @@ var displayWeather = function () {
     cityUvIndexColor.textContent = cityWeather.uvi.toString();
     if (cityWeather.uvi <= 2) {
         cityUvIndexColor.id = "uv-index-mild";
-    } else if (cityWeather.uvi <+ 5) {
+    } else if (cityWeather.uvi < + 5) {
         cityUvIndexColor.id = "uv-index-moderate";
     } else if (cityWeather.uvi >= 6) {
         cityUvIndexColor.id = "uv-index-severe";
     }
     cityUvIndex.appendChild(cityUvIndexColor);
 
-    weatherCurrentDayEl.append(cityName, cityTemperature, cityHumidity, cityWindSpeed, cityUvIndex);
+    currentWeatherBox.append(cityName, cityTemperature, cityHumidity, cityWindSpeed, cityUvIndex)
+
+    weatherCurrentDayEl.appendChild(currentWeatherBox);
 
 }
 
@@ -151,6 +234,7 @@ var displayForecast = function () {
 
     refresh(forecastHeaderEl);
     refresh(weatherForecastEl);
+
 
     var forecastHeader = document.createElement("h2");
     forecastHeader.textContent = "5-Day Forecast:";
@@ -181,7 +265,3 @@ var displayForecast = function () {
 }
 
 cityNameSubmitEl.addEventListener("submit", getCityName);
-
-
-
-

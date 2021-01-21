@@ -21,11 +21,13 @@ h1 {
     text-align: center;
 }
 
-#weather-current-day {
+#weather-current-day-box {
     display: block;
-    border: 1px solid #818182;
-    border-radius: 4px;
+    border: 1px solid #818182; 
+    border-radius: 4px; 
     background-color: rgb(236, 232, 232);
+    width: 100%;
+    padding: 10px;
 }
   
 .card {
@@ -37,7 +39,7 @@ h1 {
 
   #uv-index-mild {
       background-color: green;
-      color: r#fdfdfe;
+      color: #fdfdfe;
   }
 
   #uv-index-moderate {
