@@ -274,4 +274,6 @@ var displayForecast = function () {
     // end of displayForecast Function
 }
 
+cleanStart();
+
 cityNameSubmitEl.addEventListener("submit", getCityName);
